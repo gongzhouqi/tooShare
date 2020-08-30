@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+        <style type="text/css"> 
+            body {
+            -webkit-user-select: none;
+               -moz-user-select: -moz-none;
+                -ms-user-select: none;
+                    user-select: none;
+            }
+            .main-pane {
+                background-size: auto; 
+                text-align: center; 
+                padding-top: 50px; 
+            }
+            .btn-pane {
+                background-size: auto; 
+                text-align: center; 
+                padding-top: 50px; 
+            }
+            .btn-circle-empty {
+                width: 30px;
+                height: 30px;
+                border: 1px solid darkgray;
+                border-radius: 15px;
+                background-color: gainsboro;
+                position: absolute;
+            }
+            .btn-circle-active {
+                width: 30px;
+                height: 30px;
+                border: 1px solid darkgray;
+                border-radius: 15px;
+                background-color: greenyellow;
+                position: absolute;
+            }
+            .group-select {
+                overflow: visible;
+                width: 50px;
+                position: absolute;
+                top: 200px;
+                left: 900px;
+            }
+            .group-select-label {
+                position: absolute;
+                top: 175px;
+                left: 900px;
+            }
+            .move-select {
+                overflow: visible;
+                width: 50px;
+                position: absolute;
+                top: 200px;
+                left: 1000px;
+            }
+            .move-select-label {
+                position: absolute;
+                top: 175px;
+                left: 1000px;
+            }
+            #required-txt {
+                position: absolute;
+                top: 310px;
+                left: 900px;
+            }
+            #existed-txt {
+                position: absolute;
+                top: 345px;
+                left: 900px;
+            }
+            #submit-btn {
+                position: absolute;
+                top: 385px;
+                left: 900px;
+            }
+        </style> 
+        <title>纸片马里奥转盘解答器</title>
+    </head>
+    <body>
+        <label for="groupSelect" class="group-select-label">兵组数</label>
+        <select multiple class="form-control group-select" id="groupSelect" onchange="onGroupNumChange()">
+            <option selected disabled>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+        </select>
+
+        <label for="moveSelect" class="move-select-label">移动数</label>
+        <select multiple class="form-control move-select" id="moveSelect">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+        </select>
+
+        <h4 id="required-txt">需放士兵：0个</h4>
+        <h4 id="existed-txt">已放士兵：0个</h4>
+
+        <button disabled type="button" class="btn btn-primary" id="submit-btn" onclick="onSubmit()">计算</button>
+        
+    </body>
+    <script>
+        const ROTATE = 0;
+        const SLIDE = 1;
+
+        var groups;
+        var moves;
+        var rings;
+        var history;
+        var ans;
+        
+        function restart() {
+            groups = 0;
+            rings = [0, 0, 0, 0];
+            history = [];
+        }
+
+        const MARKS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048];
+
+        const CHECKER = [3, 6, 12, 24, 48, 96, 192, 384, 768, 1536, 3072, 2049];
+
+        function isValidMaze() {
+            if (rings[3] != rings[2] || rings[1] != rings[0]) {
+                return false;
+            }
+            if (((rings[3] & rings[1]) != rings[3]) && ((rings[3] & rings[0]) != rings[3])) {
+                return false;
+            }
+            var r0 = rings[0] ^ rings[3];
+            var tempR3 = rings[3];
+            var outer = 0; 
+            while (tempR3 > 0) { 
+                tempR3 &= (tempR3 - 1); 
+                outer++;
+            }
+            var inner = groups - outer;
+            if (inner == 0) return true;
+            if (r0 < 2048) {
+                for (var i = 0; i < 10; i++) {
+                    if ((r0 & CHECKER[i]) == CHECKER[i]) {
+                        inner--;
+                        if (inner == 0) {
+                            return true;
+                        } else {
+                            i++;
+                        }
+                    }
+                }
+                return false;
+            } else {
+                if ((r0 & 1) == 0) {
+                    for (var i = 1; i < 11; i++) {
+                        if ((r0 & CHECKER[i]) == CHECKER[i]) {
+                            inner--;
+                            if (inner == 0) {
+                                return true;
+                            } else {
+                                i++;
+                            }
+                        }
+                    }
+                    return false;
+                } else {
+                    if (inner == 1) return true;
+                    var tempInner = inner;
+                    for (var i = 0; i < 11; i++) {
+                        if ((r0 & CHECKER[i]) == CHECKER[i]) {
+                            inner--;
+                            if (inner == 0) {
+                                return true;
+                            } else {
+                                i++;
+                            }
+                        }
+                    }
+                    inner = tempInner - 1;
+                    for (var i = 1; i < 10; i++) {
+                        if ((r0 & CHECKER[i]) == CHECKER[i]) {
+                            inner--;
+                            if (inner == 0) {
+                                return true;
+                            } else {
+                                i++;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+
+        var totalRequired = 0;
+        var putDown = 0;
+
+        function onGroupNumChange() {
+            var actives = document.getElementsByClassName("btn-circle-active");
+            while (actives.length != 0) {
+                var target = actives.item(0);
+                target.classList.remove("btn-circle-active");
+                target.classList.add("btn-circle-empty");
+            }
+            totalRequired = document.getElementById("groupSelect").selectedIndex * 4;
+            putDown = 0;
+            document.getElementById("required-txt").innerText = "需放士兵：" + totalRequired + "个";
+            document.getElementById("existed-txt").innerText = "已放士兵：0个";
+            document.getElementById("submit-btn").disabled = false;
+        }
+
+        function onSubmit() {
+            if (totalRequired != putDown) {
+                alert("请放置所有士兵！");
+                return;
+            }
+            if (document.getElementById("moveSelect").selectedIndex == -1) {
+                alert("请选择步数！");
+                return;
+            }
+            restart();
+            inputData();
+            ans = [];
+            if (calculateAnswer(moves)) {
+                var toShow = "";
+                while (ans.length > 0) {
+                    var step = ans.pop();
+                    var index = ans.pop();
+                    var op = ans.pop();
+                    if (op == ROTATE) {
+                        toShow += "将第" + (index+1) + "环顺时针旋转" + (step+1) + "次。";
+                    } else {
+                        
+                        toShow += "将第" + (index+1) + "列向下移动" + (step+1) + "次。";
+                    }
+                }
+                alert(toShow);
+            } else {
+                alert("没有答案");
+            }
+        }
+
+        function inputData() {
+            var actives = document.getElementsByClassName("btn-circle-active");
+            for (var i = 0; i < actives.length; i++) {
+                var target = actives.item(i);
+                var id = target.id;
+                var idSplit = id.split("-");
+                rings[idSplit[0]] += MARKS[idSplit[1]];
+            }
+            moves = Number(document.getElementById("moveSelect").value);
+            groups = document.getElementById("groupSelect").selectedIndex;
+        }
+
+        function calculateAnswer(moveLeft) {
+            if (moveLeft == 0) return false;
+            for (var slideIndex = 0; slideIndex < 6; slideIndex++) {
+                var needSlide = false;
+                for (var r = 0; r < 4; r++) {
+                    if ((rings[r] & MARKS[slideIndex]) | (rings[r] & MARKS[slideIndex+6])) {
+                        needSlide = true;
+                        break;
+                    }
+                }
+                if (needSlide) {
+                    for (var slideStep = 0; slideStep < 7; slideStep++) {
+                        slideMaze(slideIndex);
+                        if (isValidMaze()) {
+                            ans.push(SLIDE);
+                            ans.push(slideIndex);
+                            ans.push(slideStep);
+                            return true;
+                        } else {
+                            if (calculateAnswer(moveLeft-1)) {
+                                ans.push(SLIDE);
+                                ans.push(slideIndex);
+                                ans.push(slideStep);
+                                return true;
+                            }
+                        }
+                    }
+                    slideMaze(slideIndex);
+                }
+            }
+            for (var rotateIndex = 0; rotateIndex < 4; rotateIndex++) {
+                if (rings[rotateIndex] != 0) {
+                    for (var rotateStep = 0; rotateStep < 11; rotateStep++) {
+                        rotateMaze(rotateIndex);
+                        if (isValidMaze()) {
+                            ans.push(ROTATE);
+                            ans.push(rotateIndex);
+                            ans.push(rotateStep);
+                            return true;
+                        } else {
+                            if (calculateAnswer(moveLeft-1)) {
+                                ans.push(ROTATE);
+                                ans.push(rotateIndex);
+                                ans.push(rotateStep);
+                                return true;
+                            }
+                        }
+                    }
+                    rotateMaze(rotateIndex);
+                }
+            }
+            return false;
+        }
+
+        function slideMaze(index) {
+            var carryFrom = false;
+            for (var i = 3; i >= 0; i--) {
+                var carryTo = (rings[i] & MARKS[index]) > 0;
+                if (carryFrom && carryTo) {
+                } else if (carryFrom) {
+                    rings[i] |= MARKS[index];
+                } else if (carryTo) {
+                    rings[i] ^= MARKS[index];
+                }
+                carryFrom = carryTo;
+            }
+            index += 6;
+            for (var i = 0; i < 4; i++) {
+                var carryTo = (rings[i] & MARKS[index]) > 0;
+                if (carryFrom && carryTo) {
+                } else if (carryFrom) {
+                    rings[i] |= MARKS[index];
+                } else if (carryTo) {
+                    rings[i] ^= MARKS[index];
+                }
+                carryFrom = carryTo;
+            }
+            if (carryFrom) {
+                rings[3] |= MARKS[index-6];
+            }
+        }
+
+        function rotateMaze(index) {
+            if ((rings[index] & 1) > 0) {
+                rings[index] |= 4096;
+            }
+            rings[index] >>= 1;
+        }
+
+        function createLine(angle) {
+            var line = document.createElement("div");
+            var styles = 'border: 2px solid gray;'
+                    + 'width: 750px;'
+                    + 'height: 0px;'
+                    + '-moz-transform: rotate(' + angle + 'deg);'
+                    + '-webkit-transform: rotate(' + angle + 'deg);'
+                    + '-o-transform: rotate(' + angle + 'deg);'  
+                    + '-ms-transform: rotate(' + angle + 'deg);'  
+                    + 'position: absolute;'
+                    + 'top: 400px;'
+                    + 'left: 25px;';
+            line.setAttribute('style', styles);  
+            document.body.appendChild(line);
+        }
+
+        function createCircle(r) {
+            var circle = document.createElement("div");
+            var styles = 'border: 4px solid gray;'
+                + 'width: ' + (r*2) + 'px;'
+                + 'height: ' + (r*2) + 'px;'
+                + '-webkit-border-radius: ' + r + 'px;'
+                + '-moz-border-radius: ' + r + 'px;'
+                + 'border-radius: ' + r + 'px;'
+                + 'position: absolute;'
+                + 'top: ' + (400-r) + 'px;'
+                + 'left: ' + (400-r) + 'px;';
+            circle.setAttribute('style', styles);  
+            document.body.appendChild(circle);
+        }
+
+        for (var i = 1; i < 6; i++) {
+            createCircle(i*75);
+        }
+
+        for (var i = 0; i < 6; i++) {
+            createLine(i*30);
+        }
+
+        for (var i = 0; i < 4; i++) {
+            var trackR = i * 75 + 105;
+            for (var j = 0; j < 12; j++) {
+                var btn = document.createElement("div");
+                var id = "" + i + "-" + j;
+                btn.classList.add("btn-circle-empty");
+                btn.id = id;
+                var angle = Math.PI / 12 * (j*2+1);
+                var transX = Math.cos(angle) * trackR;
+                var transY = Math.sin(angle) * trackR;
+                var centerX = 400 + transX;
+                var centerY = 400 - transY;
+                btn.style.left = "" + (centerX - 15) + "px";
+                btn.style.top = "" + (centerY - 15) + "px";
+                btn.onclick = function(evt) {
+                    var source = evt.target || evt.srcElement;
+                    if (source.classList.contains("btn-circle-empty")) {
+                        if (putDown == totalRequired) {
+                            alert("已达到放置上限！");
+                        } else {
+                            source.classList.remove("btn-circle-empty");
+                            source.classList.add("btn-circle-active");
+                            putDown++;
+                            document.getElementById("existed-txt").innerText = "已放士兵：" + putDown + "个";
+                        }
+                    } else {
+                        source.classList.remove("btn-circle-active");
+                        source.classList.add("btn-circle-empty");
+                        putDown--;
+                        document.getElementById("existed-txt").innerText = "已放士兵：" + putDown + "个";
+                    }
+                }
+                document.body.appendChild(btn);
+            }
+        }
+    </script>
+</html>
