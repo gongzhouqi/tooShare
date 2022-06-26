@@ -1,0 +1,26 @@
+.editor-element-wrapper, .editor-title-wrapper, .editor-submit-wrapper {
+    width: 60rem;
+    margin-left: 2rem;
+}
+
+.editor-title-wrapper, .editor-submit-wrapper {
+    margin-top: 3rem;
+}
+
+.editor-submit-wrapper {
+    margin-bottom: 5rem;
+}
+
+.mainEditorDelete {
+    display: inline-block;
+    margin-top: 0.2rem;
+    color: #E34724;
+}
+
+.form-control {
+    border-radius: 2px;
+}
+
+.main-editor-empty-error {
+    border-color: #f50000;
+}

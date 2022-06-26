@@ -1,0 +1,99 @@
+@import "editor.css";
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    height: 100%;
+}
+
+.navbar {
+    -webkit-box-shadow: 0 8px 6px -6px #999;
+    -moz-box-shadow: 0 8px 6px -6px #999;
+    box-shadow: 0 8px 6px -6px #999;
+    z-index: 99999;
+}
+
+.page-expander {
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    padding-top: 60px;
+    background-clip: content-box;
+    /*background-color: blue;*/
+}
+
+.normal-height-div {
+    position: relative;
+    min-height: 100%;
+    max-height: 100%;
+}
+
+.outer-wrapper {
+    display: flex;
+}
+
+.scroller {
+    overflow-y: auto;
+}
+
+.left-panel {
+    width: 30rem;
+    /*border: 3px solid red;*/
+}
+
+.main-panel {
+    width: 100%;
+    /*border: 3px solid red;*/
+}
+
+.main-section {
+    width: 60rem;
+    margin: 2rem;
+}
+
+.horizontal-div {
+    display: flex;
+}
+
+.main-hidden {
+    display: none;
+}
+
+.main-active {
+
+}
+
+.main-display {
+
+}
+
+.main-edit {
+
+}
+
+.mainDisplayFunctionalityButton {
+    display: inline-block;
+    font-size: 1.3rem;
+    margin: auto 0 auto 2rem;
+}
+
+.page-divider {
+    width: 1.5rem;
+    background-color: rgba(0, 0, 0, .1);
+    border: solid rgba(0, 0, 0, .15);
+    border-width: 1px 0;
+    box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+}
+
+::-webkit-scrollbar {
+    width: 14px;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 4px solid rgba(0, 0, 0, 0);
+    background-clip: content-box;
+    border-radius: 9999px;
+    background-color: #AAAAAA;
+}

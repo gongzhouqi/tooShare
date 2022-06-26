@@ -1,0 +1,1 @@
+grant all on menu_db.* to 'menuuser'@'%';

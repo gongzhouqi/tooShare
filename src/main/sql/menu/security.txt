@@ -1,0 +1,2 @@
+username = menuuser
+password = menuC0nnecti0nPass
